@@ -32,7 +32,7 @@ local trainCache = paths.concat(cache, cache_prefix .. '_trainCache.t7')
 
 --------------------------------------------------------------------------------------------
 local input_nc = opt.input_nc -- input channels
-local output_nc = opt.output_nc
+local output_nc = opt.output_nc -- output channels
 local loadSize   = {input_nc, opt.loadSize}
 local sampleSize = {input_nc, opt.fineSize}
 
@@ -120,15 +120,34 @@ end
 --local function loadImage
 
 local function loadImage(path)
-   local input = image.load(path, 3, 'float')
---print(input:size())
-   local h = input:size(2)
-   local w = input:size(3)
+  
+  local input = image.load(path, 3, 'float')
+  --print(input:size())
+  local h = input:size(2)
+  local w = input:size(3)
 
-   local imA = image.crop(input, 0, 0, w/2, h)
-   local imB = image.crop(input, w/2, 0, w, h)
+  local imA = image.crop(input, 0, 0, w/2, h)
+  local imB = image.crop(input, w/2, 0, w, h)
    
-   return imA, imB
+  return imA, imB
+end
+
+local function loadImageSeparately (path)
+  local name = path:match( "([^/]+)$" )
+  local noise_image_path = opt.data..'/noise/'..name
+  local original_image_path = opt.data..'/original/'..name
+  
+  local noise_image = image.load(noise_image_path, 3, 'float')
+  local original_image = image.load(original_image_path, 3, 'float')
+
+--print(input:size())
+  -- local h = input:size(2)
+  -- local w = input:size(3)
+
+  -- local imA = image.crop(input, 0, 0, w/2, h)
+  -- local imB = image.crop(input, w/2, 0, w, h)
+  return original_image, noise_image
+  -- return imA, imB
 end
 
 -- channel-wise mean and std. Calculate or load them from disk later in the script.
@@ -138,10 +157,14 @@ local mean,std
 
 -- function to load the image, jitter it appropriately (random crops etc.)
 local trainHook = function(self, path)
+  
+
    collectgarbage()
    if opt.preprocess == 'regular' then
 --     print('process regular')
-     local imA, imB = loadImage(path)
+     --local imA, imB = loadImage(path)
+     local imA, imB = loadImageSeparately(path)
+     
      imA, imB = preprocessAandB(imA, imB)
 --     imA = image.scale(imA, 500, 600)
 --    imB = image.scale(imB, 500, 600)

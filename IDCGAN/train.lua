@@ -9,12 +9,10 @@ require 'optim'
 util = paths.dofile('util/util.lua')
 require 'image'
 require 'models2'  -- load your own models
-require 'torch'
-require 'optim'
-require 'image'
 
 require 'fast_neural_style.DataLoader'
 require 'fast_neural_style.PerceptualCriterion'
+
 local utils = require 'fast_neural_style.utils'
 local preprocess = require 'fast_neural_style.preprocess'
 local models = require 'fast_neural_style.models'
@@ -48,40 +46,36 @@ cmd:option('-gpu', 0)
 cmd:option('-use_cudnn', 1)
 cmd:option('-backend', 'cuda', 'cuda|opencl')
 
-
-
-
 local opt = cmd:parse(arg)
 
-  local dtype, use_cudnn = utils.setup_gpu(opt.gpu, opt.backend, opt.use_cudnn == 1)
+local dtype, use_cudnn = utils.setup_gpu(opt.gpu, opt.backend, opt.use_cudnn == 1)
 
- -- Parse layer strings and weights
-  opt.content_layers, opt.content_weights =
-    utils.parse_layers(opt.content_layers, opt.content_weights)
-  opt.style_layers, opt.style_weights =
-    utils.parse_layers(opt.style_layers, opt.style_weights)
+-- Parse layer strings and weights
+opt.content_layers, opt.content_weights =
+  utils.parse_layers(opt.content_layers, opt.content_weights)
+opt.style_layers, opt.style_weights =
+  utils.parse_layers(opt.style_layers, opt.style_weights)
 
-
-  -- Set up the perceptual loss function
-  local percep_crit
-  if opt.percep_loss_weight > 0 then
-    local loss_net = torch.load(opt.loss_network)
-    local crit_args = {
-      cnn = loss_net,
-      style_layers = opt.style_layers,
-      style_weights = opt.style_weights,
-      content_layers = opt.content_layers,
-      content_weights = opt.content_weights,
-      agg_type = opt.style_target_type,
-    }
-    percep_crit = nn.PerceptualCriterion(crit_args):type(dtype)
+-- Set up the perceptual loss function
+local percep_crit
+if opt.percep_loss_weight > 0 then
+  local loss_net = torch.load(opt.loss_network)
+  local crit_args = {
+    cnn = loss_net,
+    style_layers = opt.style_layers,
+    style_weights = opt.style_weights,
+    content_layers = opt.content_layers,
+    content_weights = opt.content_weights,
+    agg_type = opt.style_target_type,
+  }
+  percep_crit = nn.PerceptualCriterion(crit_args):type(dtype)
 end
 
 -- Parameter for training ID-CGAN
 opt = {
-   DATA_ROOT = '',         -- path to images (should have subfolders 'train', 'val', etc)
-   batchSize = 7,          -- # images in batch
-   loadSize = 286,         -- scale images to this size
+   DATA_ROOT = './datasets/rain',         -- path to images (should have subfolders 'train', 'val', etc)
+   batchSize = 3,          -- # images in batch
+   loadSize = 256,         -- scale images to this size
    fineSize = 256,         --  then crop to this size
    ngf = 64,               -- #  of gen filters in first conv layer
    ndf = 48,               -- #  of discrim filters in first conv layer
@@ -94,7 +88,7 @@ opt = {
    flip = 1,               -- if flip the images for data argumentation
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
    name = 'rain',              -- name of the experiment, should generally be passed on the command line
-   which_direction = 'AtoB',    -- AtoB or BtoA
+   which_direction = 'BtoA',    -- AtoB or BtoA
    phase = 'training',             -- train, val, test, etc
    preprocess = 'regular',      -- for special purpose preprocessing, e.g., for colorization, change this (selects preprocessing functions in util.lua)
    nThreads = 2,                -- # threads for loading data
@@ -104,7 +98,9 @@ opt = {
    display_freq = 100,          -- display the current results every display_freq iterations
    save_display_freq = 5000,    -- save the current display of results every save_display_freq_iterations
    continue_train=0,            -- if continue training, load the latest model: 1: true, 0: false
-   serial_batches = 0,          -- if 1, takes images in order to make batches, otherwise takes them randomly
+   continue_train_G_model_name = '1900_net_G.t7', -- G model name to continute to train
+   continue_train_D_model_name = '1900_net_D.t7', -- D model name to continute to train
+   serial_batches = 1,          -- if 1, takes images in order to make batches, otherwise takes them randomly
    serial_batch_iter = 1,       -- iter into serial image list
    checkpoints_dir = './checkpoints/model_name', -- models are saved here
    cudnn = 1,                         -- set to 0 to not use cudnn (untested)
@@ -116,6 +112,12 @@ opt = {
    which_model_netG = 'our_net',  -- selects model to use for netG
    lambda = 150,               -- weight on Perceptual loss term in objective
    lambda1 = 150,               -- weight on MSE term in objective
+   display = false,            -- display samples while training. 0 = false
+   display_id = 10,        -- display window id.
+   display_plot = 'errL1',    -- which loss values to plot over time. Accepted values include a comma seperated list of: errL1, errG, and errD
+   display_freq = 100,          -- display the current results every display_freq iterations
+   save_display_freq = 5000,    -- save the current display of results every save_display_freq_iterations
+
 }
 
 -- one-line argument parser. parses enviroment variables to override the defaults
@@ -140,9 +142,10 @@ end
 
 if opt.display == 0 then opt.display = false end
 
-opt.manualSeed = torch.random(1, 10000) -- fix seed
-print("Random Seed: " .. opt.manualSeed)
-torch.manualSeed(opt.manualSeed)
+-- TODO: Check it if it is used to trai randomly
+-- opt.manualSeed = torch.random(1, 10000) -- fix seed
+-- print("Random Seed: " .. opt.manualSeed)
+-- torch.manualSeed(opt.manualSeed)
 torch.setdefaulttensortype('torch.FloatTensor')
 
 -- create data loader
@@ -170,6 +173,7 @@ local ngf = opt.ngf
 local real_label = 1
 local fake_label = 0
 
+-- Define G
 function defineG(input_nc, output_nc, ngf, nz)
    
     if opt.which_model_netG == "our_net" then netG = defineGour_net(input_nc, output_nc, ngf)
@@ -180,17 +184,17 @@ function defineG(input_nc, output_nc, ngf, nz)
    
    return netG
 end
-
+-- Define D
 function defineD(input_nc, output_nc, ndf)
     
     local netD = nil
-    if opt.condition_GAN==1 then
+    if opt.condition_GAN == 1 then
         input_nc_tmp = input_nc
     else
         input_nc_tmp = 0 -- only penalizes structure in output channels
     end
     
-    if     opt.which_model_netD == "basic" then netD = defineD_n_layers(input_nc, output_nc, ndf, 3)
+    if opt.which_model_netD == "basic" then netD = defineD_n_layers(input_nc, output_nc, ndf, 3)
     else error("unsupported netD model")
     end
     
@@ -203,25 +207,26 @@ end
 -- load saved models and finetune
 if opt.continue_train == 1 then
    print('loading previously trained netG...')
-   netG = util.load(paths.concat(opt.checkpoints_dir, opt.name, '1900_net_G.t7'), opt)
+   netG = util.load(paths.concat(opt.checkpoints_dir, opt.name, opt.continue_train_G_model_name), opt)
    print('loading previously trained netD...')
-   netD = util.load(paths.concat(opt.checkpoints_dir, opt.name, '1900_net_D.t7'), opt)
+   netD = util.load(paths.concat(opt.checkpoints_dir, opt.name, opt.continue_train_D_model_name), opt)
 else
   print('define model netG...')
   netG = defineG(input_nc, output_nc, ngf, nz)
   print('define model netD...')
   netD = defineD(input_nc, output_nc, ndf)
 end
-
+print("###################################")
+print("G net:")
 print(netG)
+print("###################################")
+print("D net:")
 print(netD)
 
 
 local criterion = nn.BCECriterion()
 local criterionAE1 = nn.MSECriterion()
 local criterionAE = percep_crit
-
-
 
 ---------------------------------------------------------------------------
 optimStateG = {
@@ -234,10 +239,13 @@ optimStateD = {
 }
 ----------------------------------------------------------------------------
 local real_A = torch.Tensor(opt.batchSize, input_nc, opt.fineSize, opt.fineSize)
+
 local real_B = torch.Tensor(opt.batchSize, output_nc, opt.fineSize, opt.fineSize)
 local fake_B = torch.Tensor(opt.batchSize, output_nc, opt.fineSize, opt.fineSize)
+
 local real_AB = torch.Tensor(opt.batchSize, output_nc + input_nc*opt.condition_GAN, opt.fineSize, opt.fineSize)
 local fake_AB = torch.Tensor(opt.batchSize, output_nc + input_nc*opt.condition_GAN, opt.fineSize, opt.fineSize)
+
 local errD, errG, errL1 = 0, 0, 0
 local epoch_tm = torch.Timer()
 local tm = torch.Timer()
@@ -246,11 +254,13 @@ local data_tm = torch.Timer()
 
 if opt.gpu > 0 then
    print('transferring to gpu...')
+
    require 'cunn'
    cutorch.setDevice(opt.gpu)
    real_A = real_A:cuda();
    real_B = real_B:cuda(); fake_B = fake_B:cuda();
    real_AB = real_AB:cuda(); fake_AB = fake_AB:cuda();
+
    if opt.cudnn==1 then
       netG = util.cudnn(netG); netD = util.cudnn(netD);
    end
@@ -258,10 +268,8 @@ if opt.gpu > 0 then
    print('done')
 end
 
-
 local parametersD, gradParametersD = netD:getParameters()
 local parametersG, gradParametersG = netG:getParameters()
-
 
 function createRealFake()
     -- load real
@@ -391,6 +399,7 @@ for epoch = 1, opt.niter do
         -- display
         counter = counter + 1
         if counter % opt.display_freq == 0 and opt.display then
+            disp = require 'display'
             createRealFake()
             if opt.preprocess == 'colorization' then 
                 local real_A_s = util.scaleBatch(real_A:float(),100,100)
@@ -409,9 +418,10 @@ for epoch = 1, opt.niter do
         -- write display visualization to disk
         --  runs on the first batchSize images in the opt.phase set
         if counter % opt.save_display_freq == 0 and opt.display then
+            disp = require 'display'
             local serial_batches=opt.serial_batches
-            opt.serial_batches=1
-            opt.serial_batch_iter=1
+            opt.serial_batches = 1
+            opt.serial_batch_iter = 1
             
             local image_out = nil
             local N_save_display = 10
@@ -466,6 +476,6 @@ for epoch = 1, opt.niter do
     
     print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
             epoch, opt.niter, epoch_tm:time().real))
-    parametersD, gradParametersD = netD:getParameters() 
+    parametersD, gradParametersD = netD:getParameters() -- reflatten the params and get them
     parametersG, gradParametersG = netG:getParameters()
 end

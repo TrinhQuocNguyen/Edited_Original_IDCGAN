@@ -84,6 +84,7 @@ function data:getBatch()
    self.threads:addjob(self._getFromThreads, self._pushResult)
    self.threads:dojob()
    local res = result[1]
+   
 --   print(res)
 --   print('result')
 --   print(res)
@@ -103,14 +104,17 @@ function data:getBatch()
    result[1] = nil
    if torch.type(img_data) == 'table' then
       img_data = unpack(img_data)
-   end
-
+   end 
 
    return img_data, img_paths
+
 end
 
 function data:size()
    return self._size
 end
+
+
+
 
 return data

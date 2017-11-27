@@ -94,7 +94,10 @@ function dataset:__init(...)
    -- argcheck
    local args =  initcheck(...)
    print(args)
-   for k,v in pairs(args) do self[k] = v end
+   
+   for k,v in pairs(args) do 
+      self[k] = v 
+   end
 
    if not self.loadSize then self.loadSize = self.sampleSize; end
 
@@ -159,7 +162,7 @@ function dataset:__init(...)
    end
 
    -- find the image path names
-   self.imagePath = torch.CharTensor()  -- path to each image in dataset
+   self.imagePath = torch.CharTensor()  -- path to each image in dataset   
    self.imageClass = torch.LongTensor() -- class index of each image (class index in self.classes)
    self.classList = {}                  -- index of imageList to each image of a particular class
    self.classListSample = self.classList -- the main list used when sampling data
