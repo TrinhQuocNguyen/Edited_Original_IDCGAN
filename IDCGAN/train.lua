@@ -117,6 +117,7 @@ opt = {
    display_plot = 'errL1',    -- which loss values to plot over time. Accepted values include a comma seperated list of: errL1, errG, and errD
    display_freq = 100,          -- display the current results every display_freq iterations
    save_display_freq = 5000,    -- save the current display of results every save_display_freq_iterations
+   load_image_separately = true, -- if load images from 2 folder separately 
 
 }
 

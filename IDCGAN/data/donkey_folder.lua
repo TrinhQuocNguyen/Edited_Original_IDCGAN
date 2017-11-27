@@ -162,13 +162,19 @@ local trainHook = function(self, path)
    collectgarbage()
    if opt.preprocess == 'regular' then
 --     print('process regular')
+      local imA, imB
+      
+      if opt.load_image_separately == true then
+        imA, imB = loadImageSeparately(path)
+      else 
+        imA, imB = loadImage(path) 
+      end 
+
      --local imA, imB = loadImage(path)
-     local imA, imB = loadImageSeparately(path)
-     
-     imA, imB = preprocessAandB(imA, imB)
+      imA, imB = preprocessAandB(imA, imB)
 --     imA = image.scale(imA, 500, 600)
 --    imB = image.scale(imB, 500, 600)
-     imAB = torch.cat(imA, imB, 1)
+      imAB = torch.cat(imA, imB, 1)
    end
    
    if opt.preprocess == 'colorization' then 
