@@ -37,8 +37,16 @@ and put the dataset folder into the "IDCGAN" folder
 
 ## Testing
 
-	DATA_ROOT=./datasets/rain name=rain which_direction=BtoA phase=test_nature th test.lua
+	DATA_ROOT=./datasets/rain name=rain which_direction=BtoA phase=test_car_rain_150 which_epoch=latest loadSize=640 fineSize=640 fineSize1=640 th test.lua
 
+#####Copy latest model to relevant folder
+## delete old latest file
+
+	rm -rf ~/trinh/ID-CGAN/IDCGAN/model/rain/latest_net_G.t7
+
+## copy new latest file
+
+	cp -i ~/trinh/ID-CGAN/IDCGAN/checkpoints/model_name/rain/latest_net_G.t7 ~/trinh/ID-CGAN/IDCGAN/model/rain/
 
 ##  Testing using ID-CGAN model
 The trained ID-CGAN model  and our training and testing datasets can be found at 
