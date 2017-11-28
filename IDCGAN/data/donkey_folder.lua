@@ -134,8 +134,8 @@ end
 
 local function loadImageSeparately (path)
   local name = path:match( "([^/]+)$" )
-  local noise_image_path = opt.data..'/noise/'..name
-  local original_image_path = opt.data..'/original/'..name
+  local noise_image_path = opt.data.. opt.noise_folder_name..'/'..name
+  local original_image_path = opt.data.. opt.original_folder_name..'/'..name
   
   local noise_image = image.load(noise_image_path, 3, 'float')
   local original_image = image.load(original_image_path, 3, 'float')

@@ -12,15 +12,15 @@ torch.setdefaulttensortype('torch.FloatTensor')
 opt = {
     DATA_ROOT = '',           -- path to images (should have subfolders 'train', 'val', etc)
     batchSize = 1,            -- # images in batch
-    loadSize = 600,           -- scale images to this size
-    fineSize = 600,           --  then crop to this size
-    fineSize1 = 600,           --  then crop to this size
+    loadSize = 640,           -- scale images to this size
+    fineSize = 640,           --  then crop to this size
+    fineSize1 = 640,           --  then crop to this size
     flip=0,                   -- horizontal mirroring data augmentation
     display = 1,              -- display samples while training. 0 = false
     display_id = 200,         -- display window id.
     gpu = 1,                  -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
     how_many = 'all',         -- how many test images to run (set to all to run on every image found in the data/phase folder)
-    which_direction = 'BtoA', -- AtoB or BtoA
+    which_direction = 'BtoA', -- AtoB or BtoA (BtoA : original <- noise)
     phase = 'val',            -- train, val, test ,etc
     preprocess = 'regular',   -- for special purpose preprocessing, e.g., for colorization, change this (selects preprocessing functions in util.lua)
     aspect_ratio = 1.0,       -- aspect ratio of result images
@@ -33,6 +33,15 @@ opt = {
     checkpoints_dir = './model', -- loads models from here
     results_dir='./results/',          -- saves results here
     which_epoch = '900',            -- which epoch to test? set to 'latest' to use latest cached model
+    display = false,            -- display samples while training. 0 = false
+    display_id = 10,        -- display window id.
+    display_plot = 'errL1',    -- which loss values to plot over time. Accepted values include a comma seperated list of: errL1, errG, and errD
+    display_freq = 100,          -- display the current results every display_freq iterations
+    save_display_freq = 5000,    -- save the current display of results every save_display_freq_iterations
+    load_image_separately = true,
+    noise_folder_name = '/noise',
+    original_folder_name = '/original',
+
 }
 
 

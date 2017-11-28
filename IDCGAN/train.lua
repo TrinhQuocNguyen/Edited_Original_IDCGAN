@@ -88,7 +88,7 @@ opt = {
    flip = 1,               -- if flip the images for data argumentation
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
    name = 'rain',              -- name of the experiment, should generally be passed on the command line
-   which_direction = 'BtoA',    -- AtoB or BtoA
+   which_direction = 'BtoA',    -- AtoB or BtoA (BtoA : original <- noise)
    phase = 'training',             -- train, val, test, etc
    preprocess = 'regular',      -- for special purpose preprocessing, e.g., for colorization, change this (selects preprocessing functions in util.lua)
    nThreads = 2,                -- # threads for loading data
@@ -118,6 +118,8 @@ opt = {
    display_freq = 100,          -- display the current results every display_freq iterations
    save_display_freq = 5000,    -- save the current display of results every save_display_freq_iterations
    load_image_separately = true, -- if load images from 2 folder separately 
+   noise_folder_name = '/noise',
+   original_folder_name = '/original',
 
 }
 
