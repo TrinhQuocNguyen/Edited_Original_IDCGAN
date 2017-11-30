@@ -102,15 +102,21 @@ end
 opt.how_many=math.min(opt.how_many, data:size())
 
 local filepaths = {} -- paths to images tested on
+require 'qtwidget'
+local w = qtwidget.newwindow(640, 640)
 for n=1,math.floor(opt.how_many/opt.batchSize) do
     print('processing batch ' .. n)
     
     local data_curr, filepaths_curr = data:getBatch()
-    filepaths_curr = util.basename_batch(filepaths_curr)
+    
     print('filepaths_curr: ', filepaths_curr)
+    require 'pl.pretty'.dump(img_paths)    
+    
+    filepaths_curr = util.basename_batch(filepaths_curr)
     
     input = data_curr[{ {}, idx_A, {}, {} }]
     target = data_curr[{ {}, idx_B, {}, {} }]
+
     
     if opt.gpu > 0 then
         input = input:cuda()
@@ -121,6 +127,7 @@ for n=1,math.floor(opt.how_many/opt.batchSize) do
         output = util.deprocess_batch(netG:forward(input))
         input = util.deprocess_batch(input):float()
         output = output:float()
+        
         target = util.deprocess_batch(target):float()
     end
     paths.mkdir(paths.concat(opt.results_dir, opt.netG_name .. '_' .. opt.phase))
@@ -134,7 +141,15 @@ for n=1,math.floor(opt.how_many/opt.batchSize) do
 --    print(target:size())
     for i=1, opt.batchSize do
         image.save(paths.concat(image_dir,'input',filepaths_curr[i]), image.scale(input[i],input[i]:size(2),input[i]:size(3)/opt.aspect_ratio))
+        print('======================================================')
+        print('zcxcxz: ')
+        print(paths.concat(image_dir,'output',filepaths_curr[i]))
+        os.exit()
+        
         image.save(paths.concat(image_dir,'output',filepaths_curr[i]), image.scale(output[i],output[i]:size(2),output[i]:size(3)/opt.aspect_ratio))
+        
+        image.display{image = image.scale(output[i],output[i]:size(2),output[i]:size(3)/opt.aspect_ratio), win = w}
+
 --        image.save(paths.concat(image_dir,'output',filepaths_curr[i]),output[i])
         image.save(paths.concat(image_dir,'target',filepaths_curr[i]), image.scale(target[i],target[i]:size(2),target[i]:size(3)/opt.aspect_ratio))
     end
