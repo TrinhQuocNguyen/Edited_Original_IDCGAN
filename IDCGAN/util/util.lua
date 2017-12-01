@@ -54,7 +54,12 @@ end
 
 -- Undo the above preprocessing.
 function util.deprocess(img)
-    
+   
+    -- (output) img luc nay la: da doi qua model tu vang chach -> vang chach
+    require 'image'
+    local name_image_saved = '/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/test_edited_2_1_during_deprocess_input_before.jpg'
+    image.save(name_image_saved, img)
+
     -- BGR to RGB
     local perm = torch.LongTensor{3, 2, 1}
     img = img:index(1, perm)
@@ -63,7 +68,10 @@ function util.deprocess(img)
     
     img = img:add(1):div(2)
 	  img=img;
-    
+    -- require 'image'
+    local name_image_saved = '/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/test_edited_2_2_during_deprocess_input_after.jpg'
+    image.save(name_image_saved, img)
+    --  (output) img luc nay la: vang chach -> binh thuong
     return img
 end
 

@@ -132,6 +132,15 @@ local function loadImage(path)
   return imA, imB
 end
 
+--[[
+* Load images to train or test from 2 separated folders (noise and original)
+by parsing the image file path and load 2 corresponding images
+* Parameters: 
+    path - the single image file path
+* Return: 
+    original_image - image as the label
+    noise_image - noise image in training phase / input image in testing phase
+]]--
 local function loadImageSeparately (path)
   local name = path:match( "([^/]+)$" )
   local noise_image_path = opt.data.. opt.noise_folder_name..'/'..name
@@ -158,7 +167,6 @@ local mean,std
 -- function to load the image, jitter it appropriately (random crops etc.)
 local trainHook = function(self, path)
   
-
    collectgarbage()
    if opt.preprocess == 'regular' then
 --     print('process regular')
@@ -200,6 +208,7 @@ print('trainCache', trainCache)
 --else
 print('Creating train metadata')
 --   print(opt.data)
+
 print('serial batch:, ', opt.serial_batches)
 trainLoader = dataLoader{
     paths = {opt.data},
@@ -212,6 +221,8 @@ trainLoader = dataLoader{
 --   print('finish')
 --torch.save(trainCache, trainLoader)
 --print('saved metadata cache at', trainCache)
+
+
 trainLoader.sampleHookTrain = trainHook
 --end
 collectgarbage()

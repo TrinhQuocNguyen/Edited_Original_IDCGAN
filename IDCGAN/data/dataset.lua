@@ -94,10 +94,7 @@ function dataset:__init(...)
    -- argcheck
    local args =  initcheck(...)
    print(args)
-   
-   for k,v in pairs(args) do 
-      self[k] = v 
-   end
+   for k,v in pairs(args) do self[k] = v end
 
    if not self.loadSize then self.loadSize = self.sampleSize; end
 
@@ -162,7 +159,7 @@ function dataset:__init(...)
    end
 
    -- find the image path names
-   self.imagePath = torch.CharTensor()  -- path to each image in dataset   
+   self.imagePath = torch.CharTensor()  -- path to each image in dataset
    self.imageClass = torch.LongTensor() -- class index of each image (class index in self.classes)
    self.classList = {}                  -- index of imageList to each image of a particular class
    self.classListSample = self.classList -- the main list used when sampling data
@@ -243,7 +240,7 @@ function dataset:__init(...)
       if length == 0 then
          error('Class has zero samples')
       else
-         self.classList[i] = torch.linspace(runningIndex + 1, runningIndex + length, length):long()
+         self.classList[i] = torch.range(runningIndex + 1, runningIndex + length):long()
          self.imageClass[{{runningIndex + 1, runningIndex + length}}]:fill(i)
       end
       runningIndex = runningIndex + length
@@ -357,7 +354,6 @@ local function tableToOutput(self, dataTable, scalarTable)
 --	 print(data:size())
    scalarLabels = torch.LongTensor(quantity):fill(-1111)
    for i=1,#dataTable do
---     print(dataTable[i]:size())
       data[i]:copy(dataTable[i])
       scalarLabels[i] = scalarTable[i]
    end
@@ -374,7 +370,6 @@ function dataset:sample(quantity)
       local class = torch.random(1, #self.classes)
 --      print(class)
       local out, imgpath = self:getByClass(class)
---print(out:size())
       table.insert(dataTable, out)
       table.insert(scalarTable, class)
       samplePaths[i] = imgpath
@@ -400,7 +395,6 @@ function dataset:get(i1, i2)
       -- load the sample
       local imgpath = ffi.string(torch.data(self.imagePath[indices[i]]))
       local out = self:sampleHookTest(imgpath)
---print(out:size())
       table.insert(dataTable, out)
       table.insert(scalarTable, self.imageClass[indices[i]])
    end

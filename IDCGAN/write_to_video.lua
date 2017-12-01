@@ -13,7 +13,7 @@ if not cap:isOpened() then
     print("Failed to open the default camera")
     os.exit(-1)
 end
--- videoWiriter
+-- videoWiter
 local sz = 720  
 local frameToSaveSize = {sz, sz}
 

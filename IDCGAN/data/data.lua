@@ -94,6 +94,7 @@ function data:getBatch()
    
    img_data = res[1]
    img_paths =  res[3]
+   
 --   print(img_data:size())
 --   print(type(img_data))
 --   print(img_paths)

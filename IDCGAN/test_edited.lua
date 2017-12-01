@@ -52,7 +52,9 @@ opt = {
 -- one-line argument parser. parses enviroment variables to override the defaults
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
 opt.nThreads = 1 -- test only works with 1 thread...
-print(opt)
+
+-- print(opt)
+
 if opt.display == 0 then opt.display = false end
 
 opt.manualSeed = torch.random(1, 10000) -- set seed
@@ -167,7 +169,8 @@ while true do
     -- Get central square crop
     -- local crop = cv.getRectSubPix{frame, patchSize={h,h}, center={w/2, h/2}}
     -- Resize it to 256 x 256
-    local im = cv.resize{frame, {sz,sz}}:float():div(255)
+    local im = cv.resize{frame, {sz,sz}}:float():div(255) -- 640x064x3
+    
     -- cv.imshow {"im", im}
     -- cv.waitKey{0}
     
@@ -179,18 +182,21 @@ while true do
     -- to CxHxW from HxWxC
     -- Note that BGR channel order required by ImageNet is already OpenCV's default
     
-    local input = im:transpose(1,3):clone()
+    local input = im:transpose(1,3):transpose(2,3):clone() -- 3x640x640
+
+    -- TODO: LAM SAO CHO INPUT VANG CHACH TRUOC
+    -- => customize data:getbatch()
     input = torch.reshape(input, torch.LongStorage{1, 3, sz,sz})
     if opt.gpu > 0 then
         input = input:cuda()
     end    
     
-    --local output = util.deprocess_batch(netG:forward(input))
-
     
-
     local output = util.deprocess_batch(netG:forward(input))
+
     --local output =netG:forward(input)
+    -- local name_image_saved = '/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/somepic_output.jpg'
+    -- image.save(name_image_saved, output)
 
     output = output:float()
 
@@ -203,15 +209,17 @@ while true do
 
     -- local name = paths.concat(image_dir,'output','raindrop.jpg')
 
+    
+
     -- local img_show = torch.reshape(output, torch.LongStorage{3, sz, sz})
     -- image.save(name, img_show)
     -- os.exit()
 
     local img_show = torch.reshape(output, torch.LongStorage{3, sz, sz})
-    img_show = img_show:transpose(3,1):clone()
+    img_show = img_show:transpose(3,2):transpose(3,1):clone()
 
-    
-    cv.cvtColor{img_show, img_show, cv.COLOR_BGR2RGB}
+
+    -- cv.cvtColor{img_show, img_show, cv.COLOR_BGR2RGB}
     -- img_show = torch_to_opencv(img_show)
 
     
