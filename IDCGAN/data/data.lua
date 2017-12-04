@@ -76,6 +76,41 @@ function data._pushResult(...)
    result[1] = res
 end
 
+function data:getBatch_Customized()
+      self.threads:addjob(self._getFromThreads, self._pushResult)
+      self.threads:dojob()
+      local res = result[1]
+      img_data = res[1]
+
+      -- local input = img_data[{ {}, {4,6}, {}, {} }]
+      -- local saved_image = image.load('/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/test_inside_getbatch_before_unpack.jpg')
+      -- print('======================================================')
+      -- print('saved_image: ')
+      -- print(saved_image)
+      -- os.exit()
+      
+      -- input = torch.reshape(input, torch.LongStorage{3, 640,640})
+      -- image.save('/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/test_inside_getbatch_before_unpack.jpg',input)
+      -- os.exit()
+      -- require 'image'
+      -- require 'qtwidget'
+      -- require 'sys'
+      -- t = sys.clock() 
+      -- sys.tic()
+      -- local w = qtwidget.newwindow(640, 640)
+      -- image.display{image = input, win = w}
+      -- t = sys.toc()
+      -- sys.sleep(10)
+
+      
+      img_paths =  res[3]
+      result[1] = nil
+      if torch.type(img_data) == 'table' then
+         img_data = unpack(img_data)
+      end       
+   
+      return img_data, img_paths
+end
 
 
 function data:getBatch()
@@ -93,6 +128,11 @@ function data:getBatch()
 --   print(paths)
    
    img_data = res[1]
+   print('======================================================')
+   print('img_data: ')
+   print(img_data)
+   os.exit()
+   
    img_paths =  res[3]
    
 --   print(img_data:size())

@@ -70,7 +70,7 @@ opt.netG_name = opt.name .. '/' .. opt.which_epoch .. '_net_G'
 -- print("Dataset Size: ", data:size())
 
 -- translation direction
--- local idx_A = nil0
+-- local idx_A = nil
 -- local idx_B = nil
 -- local input_nc = opt.input_nc
 -- local output_nc = opt.output_nc
@@ -162,14 +162,19 @@ function torch_to_opencv(img)
     return img_opencv
  end
 
+ -- Init some
+
+
 
 while true do
-    local w = frame:size(2)
-    local h = frame:size(1)
+
+    -- local w = frame:size(2)
+    -- local h = frame:size(1)
+
     -- Get central square crop
     -- local crop = cv.getRectSubPix{frame, patchSize={h,h}, center={w/2, h/2}}
     -- Resize it to 256 x 256
-    local im = cv.resize{frame, {sz,sz}}:float():div(255) -- 640x064x3
+    local im = cv.resize{frame, {sz,sz}}:float():div(255):mul(2):add(-1) -- 640x640x3
     
     -- cv.imshow {"im", im}
     -- cv.waitKey{0}
@@ -184,8 +189,15 @@ while true do
     
     local input = im:transpose(1,3):transpose(2,3):clone() -- 3x640x640
 
+    -- print('======================================================')
+    -- print('input: ')
+    -- print(input)
+    -- os.exit()
+    
     -- TODO: LAM SAO CHO INPUT VANG CHACH TRUOC
     -- => customize data:getbatch()
+    -- image.save('/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/tao_lao.jpg',input)
+    -- os.exit()
     input = torch.reshape(input, torch.LongStorage{1, 3, sz,sz})
     if opt.gpu > 0 then
         input = input:cuda()
@@ -266,7 +278,7 @@ while true do
     -- finally, tell videoWriter to push frameToSave into the video
      --videoWriter:write{img_show}
 
-    if cv.waitKey{1} >= 0 then break end
+    if cv.waitKey{30} >= 0 then break end
 
     -- Grab the next frame
     cap:read{frame}

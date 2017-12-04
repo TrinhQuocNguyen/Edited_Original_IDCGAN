@@ -64,7 +64,7 @@ local data = data_loader.new(opt.nThreads, opt)
 print("Dataset Size: ", data:size())
 
 -- translation direction
-local idx_A = nil0
+local idx_A = nil
 local idx_B = nil
 local input_nc = opt.input_nc
 local output_nc = opt.output_nc
@@ -108,6 +108,7 @@ for n=1,math.floor(opt.how_many/opt.batchSize) do
     print('processing batch ' .. n)
     
     local data_curr, filepaths_curr = data:getBatch()
+    -- local data_curr, filepaths_curr = data:getBatch_Customized()
     
     print('filepaths_curr: ', filepaths_curr)
     require 'pl.pretty'.dump(img_paths)    

@@ -61,7 +61,7 @@ function util.deprocess(img)
     image.save(name_image_saved, img)
 
     -- BGR to RGB
-    local perm = torch.LongTensor{3, 2, 1}
+    local perm = torch.LongTensor{1, 2, 3}
     img = img:index(1, perm)
     
     -- [-1,1] to [0,1]
