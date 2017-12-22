@@ -119,9 +119,10 @@ require 'cv.highgui' -- GUI
 require 'cv.videoio' -- Video input/output
 
 -- local filepath = "./videos/2（雫なし）.MP4"
-local filepath = "./videos/inpainting_rain.mp4"
+local filepath = "./videos/3_taken_noise_15f.MP4"
 
 local cap = cv.VideoCapture{filepath}
+--local cap = cv.VideoCapture{device=0}
 if not cap:isOpened() then
     print("Failed to open the the file from "..filepath)
     os.exit(-1)
@@ -176,6 +177,7 @@ while true do
     -- Resize it to 256 x 256
     local im = cv.resize{frame, {sz,sz}}:float():div(255):mul(2):add(-1) -- 640x640x3
     
+    print("1")
     -- cv.imshow {"im", im}
     -- cv.waitKey{0}
     
@@ -188,7 +190,8 @@ while true do
     -- Note that BGR channel order required by ImageNet is already OpenCV's default
     
     local input = im:transpose(1,3):transpose(2,3):clone() -- 3x640x640
-
+    print("22")
+    
     -- print('======================================================')
     -- print('input: ')
     -- print(input)
@@ -198,20 +201,26 @@ while true do
     -- => customize data:getbatch()
     -- image.save('/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/tao_lao.jpg',input)
     -- os.exit()
-    input = torch.reshape(input, torch.LongStorage{1, 3, sz,sz})
     if opt.gpu > 0 then
         input = input:cuda()
     end    
-    
-    
-    local output = util.deprocess_batch(netG:forward(input))
+    input = torch.reshape(input, torch.LongStorage{1, 3, sz,sz})
 
+    print("333")
+    
+    local temp = netG:forward(input)
+    print("**********")
+    
+    local output = util.deprocess_batch(temp)
+    print("4444")
+    
     --local output =netG:forward(input)
     -- local name_image_saved = '/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/somepic_output.jpg'
     -- image.save(name_image_saved, output)
 
     output = output:float()
-
+    print("55555")
+    
     -- paths.mkdir(paths.concat(opt.results_dir, opt.netG_name .. '_' .. opt.phase))
     -- local image_dir = paths.concat(opt.results_dir, opt.netG_name .. '_' .. opt.phase, 'outout')
     -- paths.mkdir(image_dir)
@@ -229,7 +238,8 @@ while true do
 
     local img_show = torch.reshape(output, torch.LongStorage{3, sz, sz})
     img_show = img_show:transpose(3,2):transpose(3,1):clone()
-
+    print("666666")
+    
 
     -- cv.cvtColor{img_show, img_show, cv.COLOR_BGR2RGB}
     -- img_show = torch_to_opencv(img_show)
@@ -241,7 +251,8 @@ while true do
 
     cv.imshow{"img_show", img_show}
     -- cv.waitKey{0}
- 
+    print("7777777")
+    
     
     
 
