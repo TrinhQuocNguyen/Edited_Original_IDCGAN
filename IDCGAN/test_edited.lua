@@ -119,16 +119,16 @@ require 'cv.highgui' -- GUI
 require 'cv.videoio' -- Video input/output
 
 -- local filepath = "./videos/2（雫なし）.MP4"
-local filepath = "./videos/3_taken_noise_15f.MP4"
+local filepath = "./videos/3_taken_noise.MP4"
 
-local cap = cv.VideoCapture{filepath}
---local cap = cv.VideoCapture{device=0}
+local cap = cv.VideoCapture{filepath or 0}
+-- local cap = cv.VideoCapture{device=0}
 if not cap:isOpened() then
     print("Failed to open the the file from "..filepath)
     os.exit(-1)
 end
 -- videoWriter
-local sz = 640  
+local sz = opt.fineSize  
 local frameToSaveSize = {sz, sz}
 
 local videoWriter = cv.VideoWriter{
@@ -165,61 +165,89 @@ function torch_to_opencv(img)
 
  -- Init some
 
+timer = torch.Timer()
+
 
 
 while true do
 
-    -- local w = frame:size(2)
-    -- local h = frame:size(1)
+    -- -- Resize it to 256 x 256
+    -- local im = cv.resize{frame, {sz,sz}}:cuda()
 
-    -- Get central square crop
-    -- local crop = cv.getRectSubPix{frame, patchSize={h,h}, center={w/2, h/2}}
-    -- Resize it to 256 x 256
-    local im = cv.resize{frame, {sz,sz}}:float():div(255):mul(2):add(-1) -- 640x640x3
-    
-    print("1")
-    -- cv.imshow {"im", im}
-    -- cv.waitKey{0}
-    
-    -- Subtract channel-wise mean
-    -- for i=1,3 do 
-    --     im:select(3,i):add(-net.transform.mean[i]):div(net.transform.std[i])
-    -- end
-    -- Resize again to CNN input size and swap dimensions
-    -- to CxHxW from HxWxC
-    -- Note that BGR channel order required by ImageNet is already OpenCV's default
-    
-    local input = im:transpose(1,3):transpose(2,3):clone() -- 3x640x640
-    print("22")
-    
-    -- print('======================================================')
-    -- print('input: ')
-    -- print(input)
-    -- os.exit()
-    
-    -- TODO: LAM SAO CHO INPUT VANG CHACH TRUOC
-    -- => customize data:getbatch()
-    -- image.save('/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/tao_lao.jpg',input)
-    -- os.exit()
-    if opt.gpu > 0 then
-        input = input:cuda()
-    end    
-    input = torch.reshape(input, torch.LongStorage{1, 3, sz,sz})
+    -- print(torch.type(im))
+    -- print("resize")
+    -- print(timer:time())
+    -- timer:reset()
 
-    print("333")
+    -- --im = im:float()
+    -- im.type(torch.FloatTensor)
+
+    -- print(torch.type(im))
+    -- print("cast to float")
+    -- print(timer:time())
+    -- timer:reset()
+
+    -- im = im:div(255):mul(2):add(-1) -- 640x640x3
     
-    local temp = netG:forward(input)
-    print("**********")
+    -- print("1")
+    -- print(timer:time())
+    -- timer:reset()
+  
+    -- -- Resize again to CNN input size and swap dimensions
+    -- -- to CxHxW from HxWxC
+    -- -- Note that BGR channel order required by ImageNet is already OpenCV's default
     
+    -- local input = im:transpose(1,3):transpose(2,3):clone() -- 3x640x640
+    -- print("22")
+    -- print(timer:time())
+    -- timer:reset()
+    
+    -- -- TODO: LAM SAO CHO INPUT VANG CHACH TRUOC
+    -- -- => customize data:getbatch()
+    -- -- image.save('/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/tao_lao.jpg',input)
+    -- -- os.exit()
+    -- if opt.gpu > 0 then
+    --     input = input:cuda()
+    -- end   
+    
+    
+    -- input = torch.reshape(input, torch.LongStorage{1, 3, sz,sz})
+
+    -- print("333")
+    -- print(timer:time())
+    -- timer:reset()
+    
+    -- local temp = netG:forward(input)
+    -- print("**********")
+    -- print(timer:time())
+    -- timer:reset()
+
+    -- START CODE HERE
+    local temp = cv.resize{frame, {sz,sz}}:cuda():div(255):mul(2):add(-1):transpose(1,3):transpose(2,3)
+    temp = netG:forward(torch.reshape(temp, torch.LongStorage{1, 3, sz,sz}))
+    -- END CODE HERE
     local output = util.deprocess_batch(temp)
     print("4444")
+    print(timer:time())
+    timer:reset()
     
     --local output =netG:forward(input)
     -- local name_image_saved = '/home/ubuntu/trinh/Edited_Original_IDCGAN/ID-CGAN/IDCGAN/output/somepic_output.jpg'
     -- image.save(name_image_saved, output)
-
+    print('======================================================')
+    print('from after deprocess ')
+    print(torch.type(output))
+    
+    
     output = output:float()
+    -- output.type(torch.FloatTensor)
+    -- nn.utils.recursiveType(toutputab, 'torch.FloatTensor')
     print("55555")
+    print(timer:time())
+    timer:reset()
+    print('======================================================')
+    print('after :float ')
+    print(torch.type(output))
     
     -- paths.mkdir(paths.concat(opt.results_dir, opt.netG_name .. '_' .. opt.phase))
     -- local image_dir = paths.concat(opt.results_dir, opt.netG_name .. '_' .. opt.phase, 'outout')
@@ -238,7 +266,10 @@ while true do
 
     local img_show = torch.reshape(output, torch.LongStorage{3, sz, sz})
     img_show = img_show:transpose(3,2):transpose(3,1):clone()
+    -- img_show = cv.resize{img_show, {256,256}}
     print("666666")
+    print(timer:time())
+    timer:reset()
     
 
     -- cv.cvtColor{img_show, img_show, cv.COLOR_BGR2RGB}
@@ -252,6 +283,8 @@ while true do
     cv.imshow{"img_show", img_show}
     -- cv.waitKey{0}
     print("7777777")
+    print(timer:time())
+    timer:reset()
     
     
     
