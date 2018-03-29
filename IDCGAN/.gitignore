@@ -1,0 +1,14 @@
+datasets/
+checkpoints/
+videos/
+results/
+model/
+per_loss/
+per_loss/models/
+.vscode/
+logs/
+3_taken_noise.Avi
+sample.Avi
+sampleOutput.Avi
+sampleOutputForCool.Avi
+
